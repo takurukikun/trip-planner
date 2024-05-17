@@ -6,6 +6,8 @@ import { PostData, PutData } from "@/types/api";
 import { UserApiProps } from "@/types/models/user";
 import { VacationApiProps } from "@/types/models/vacation";
 import {
+  Autocomplete,
+  AutocompleteItem,
   Chip,
   DateRangePicker,
   Input,
@@ -21,6 +23,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FaUpload } from "react-icons/fa";
+import { getCities } from "./functions";
 import { FormVacationProps } from "./types";
 
 const VacationEdit = () => {
@@ -88,6 +91,14 @@ const VacationEdit = () => {
     queryFn: ({ signal }) =>
       getData<UserApiProps[]>({
         url: "/user",
+        signal,
+      }),
+  });
+
+  const { data: dataGetCity, isLoading: loadingGetCity } = useQuery({
+    queryKey: ["city-get"],
+    queryFn: ({ signal }) =>
+      getCities({
         signal,
       }),
   });
@@ -243,6 +254,8 @@ const VacationEdit = () => {
           render={({ field, fieldState: { error } }) => (
             <DateRangePicker
               label='Dates'
+              variant='bordered'
+              isRequired
               id={field.name}
               value={field.value}
               onChange={field.onChange}
@@ -259,7 +272,7 @@ const VacationEdit = () => {
           defaultValue=''
           render={({ field, fieldState: { error } }) => (
             <Skeleton isLoaded={!loading}>
-              <Input
+              <Autocomplete
                 label='Location'
                 type='text'
                 id={field.name}
@@ -267,10 +280,17 @@ const VacationEdit = () => {
                 onChange={field.onChange}
                 value={field.value}
                 variant='bordered'
+                items={dataGetCity?.data ?? []}
                 isInvalid={!!error}
                 errorMessage={error?.message}
                 disabled={loading}
-              />
+              >
+                {(item) => (
+                  <AutocompleteItem key={item.id} value={item.id}>
+                    {item.name}
+                  </AutocompleteItem>
+                )}
+              </Autocomplete>
             </Skeleton>
           )}
         />
