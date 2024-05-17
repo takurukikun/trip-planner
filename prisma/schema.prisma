@@ -30,6 +30,7 @@ model Vacation {
   users       User[]
   title       String
   description String?
+  photo       String?
   location    String?
   createdAt   DateTime       @default(now())
   updateAt    DateTime       @updatedAt()
@@ -37,7 +38,7 @@ model Vacation {
 
 model DateVacation {
   id         Int      @id @default(autoincrement())
-  date       DateTime @unique
+  date       DateTime 
   vacation   Vacation @relation(fields: [vacationId], references: [id])
   vacationId Int
   createdAt  DateTime @default(now())
