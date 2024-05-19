@@ -1,9 +1,9 @@
 export interface CityApiProps {
-  data: Daum[];
+  data: CityData;
   metadata: Metadata;
 }
 
-export interface Daum {
+export interface CityData {
   id: number;
   wikiDataId: string;
   type: string;
