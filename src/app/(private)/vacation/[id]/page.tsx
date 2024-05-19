@@ -1,13 +1,19 @@
 "use client";
 
 import { Row } from "@/components/layout/grid";
-import { getData, postData, putData } from "@/lib/functions.api";
+import {
+  getData,
+  postData,
+  putData,
+  toastErrorsApi,
+} from "@/lib/functions.api";
 import { PostData, PutData } from "@/types/api";
 import { UserApiProps } from "@/types/models/user";
 import { VacationApiProps } from "@/types/models/vacation";
 import {
   Autocomplete,
   AutocompleteItem,
+  Button,
   Chip,
   DateRangePicker,
   Input,
@@ -16,20 +22,40 @@ import {
   Skeleton,
   Textarea,
   User,
-  cn,
 } from "@nextui-org/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { FaUpload } from "react-icons/fa";
 import { getCities } from "./functions";
 import { FormVacationProps } from "./types";
+import { InputFile } from "components/inputFile";
+import { getLocalTimeZone } from "@internationalized/date";
+import { useAsyncList } from "@react-stately/data";
+import { CityApiProps } from "@/types/models/city";
+import { toast } from "react-toastify";
+import { eachDayOfInterval } from "date-fns";
+import { convertToBase64 } from "@/lib/utils";
 
 const VacationEdit = () => {
   const { id } = useParams<{ id: string | "new" }>();
 
-  const [image, setImage] = useState<File>();
+  const [citySearch, setCitySearch] = useState<string>("");
+
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  let list = useAsyncList<CityApiProps["data"]>({
+    load: async ({ signal, filterText }) => {
+      const data = await getCities({
+        signal,
+        name: filterText,
+      });
+
+      return {
+        items: data.data as any,
+      };
+    },
+  });
 
   const { data: dataGetVacation, isLoading: loadingGet } = useQuery({
     queryFn: ({ signal }) =>
@@ -60,30 +86,44 @@ const VacationEdit = () => {
   >();
 
   const onSubmit = async (data: FormVacationProps) => {
-    // if (id === "new")
-    //   mutatePost({
-    //     url: "/vacation",
-    //     data: data,
-    //   })
-    //     .then(() => {
-    //       toast.success("Vacation registered successfully");
-    //       reset();
-    //     })
-    //     .catch((error: any) => {
-    //       toastErrorsApi(error);
-    //     });
-    // else
-    //   mutatePut({
-    //     url: "/vacation",
-    //     data: data,
-    //     id: parseInt(id, 10),
-    //   })
-    //     .then((dataVacation) => {
-    //       toast.success("Vacation updated successfully");
-    //     })
-    //     .catch((err) => {
-    //       toastErrorsApi(err);
-    //     });
+    const photoBase64 = data.photo
+      ? ((await convertToBase64(data.photo)) as string)
+      : undefined;
+    const parseData = {
+      ...data,
+      dates: eachDayOfInterval({
+        start: data.dates.start.toDate(getLocalTimeZone()),
+        end: data.dates.end.toDate(getLocalTimeZone()),
+      }).map((date) => date.toISOString()),
+      userIds: data.userIds.map((id) => Number(id)),
+      photo: photoBase64,
+      location: list.filterText,
+    };
+    console.log(parseData);
+    if (id === "new")
+      mutatePost({
+        url: "/vacation",
+        data: parseData,
+      })
+        .then(() => {
+          toast.success("Vacation registered successfully");
+          reset();
+        })
+        .catch((error: any) => {
+          toastErrorsApi(error);
+        });
+    else
+      mutatePut({
+        url: "/vacation",
+        data: parseData,
+        id: parseInt(id, 10),
+      })
+        .then((dataVacation) => {
+          toast.success("Vacation updated successfully");
+        })
+        .catch((err) => {
+          toastErrorsApi(err);
+        });
   };
 
   const { data: dataGetUser, isLoading: loadingGetUser } = useQuery({
@@ -91,14 +131,6 @@ const VacationEdit = () => {
     queryFn: ({ signal }) =>
       getData<UserApiProps[]>({
         url: "/user",
-        signal,
-      }),
-  });
-
-  const { data: dataGetCity, isLoading: loadingGetCity } = useQuery({
-    queryKey: ["city-get"],
-    queryFn: ({ signal }) =>
-      getCities({
         signal,
       }),
   });
@@ -113,28 +145,43 @@ const VacationEdit = () => {
     }
   }, [dataGetVacation, id, setValue]);
 
+  // useEffect(() => {
+  //   console.log(citySearch);
+  // }, [citySearch]);
+  //
+  // const setInputCitySearch = useCallback((inputValue: string) => {
+  //   const timeoutId = setTimeout(() => {
+  //     if (inputValue.length >= 3) {
+  //       setCitySearch(inputValue);
+  //     }
+  //   }, 1000);
+  //
+  //   return () => clearTimeout(timeoutId);
+  // }, []);
+
   return (
     <form
-      autoComplete='off'
+      autoComplete="off"
       onSubmit={handleSubmit(onSubmit)}
-      className='flex w-full flex-col gap-4'
-      id='formVacation'
+      className="flex w-full flex-col gap-4"
+      id="formVacation"
     >
       <Controller
-        name='title'
+        name="title"
         control={control}
-        defaultValue=''
+        defaultValue=""
         rules={{ required: "Field is required" }}
         render={({ field, fieldState: { error } }) => (
           <Skeleton isLoaded={!loading}>
             <Input
-              label='Title'
-              type='text'
+              label="Title"
+              type="text"
+              isClearable
               id={field.name}
               name={field.name}
               onChange={field.onChange}
               value={field.value}
-              variant='bordered'
+              variant="bordered"
               isInvalid={!!error}
               errorMessage={error?.message}
               disabled={loading}
@@ -145,20 +192,20 @@ const VacationEdit = () => {
       />
       <Row>
         <Controller
-          name='userIds'
+          name="userIds"
           control={control}
           rules={{ required: "Field is required" }}
           render={({ field, fieldState: { error } }) => (
-            <Skeleton className='rounded-md' isLoaded={!loading}>
+            <Skeleton className="rounded-md" isLoaded={!loading}>
               <Select
-                label='Participants'
+                label="Participants"
                 id={field.name}
                 onSelectionChange={(value) => field.onChange(Array.from(value))}
                 name={field.name}
                 selectedKeys={
                   Array.isArray(field.value) ? new Set(field.value) : new Set()
                 }
-                variant='bordered'
+                variant="bordered"
                 isInvalid={!!error}
                 errorMessage={error?.message}
                 classNames={{
@@ -169,11 +216,11 @@ const VacationEdit = () => {
                 isRequired
                 isLoading={loadingGetUser}
                 items={dataGetUser ?? []}
-                selectionMode='multiple'
+                selectionMode="multiple"
                 isMultiline={(field.value?.length ?? 0) > 0}
                 renderValue={(items) => {
                   return (
-                    <div className='flex flex-wrap gap-2'>
+                    <div className="flex flex-wrap gap-2">
                       {items.map((item) => (
                         <div key={item.key}>
                           <Chip
@@ -182,8 +229,8 @@ const VacationEdit = () => {
                               setValue(
                                 field.name,
                                 field.value?.filter(
-                                  (a) => a !== item.key?.toString()
-                                )
+                                  (a) => a !== item.key?.toString(),
+                                ),
                               );
                             }}
                             classNames={{
@@ -210,7 +257,7 @@ const VacationEdit = () => {
                               />
                             )}
                             {!item.data?.photo && (
-                              <span className='ml-2'>{item?.data?.name}</span>
+                              <span className="ml-2">{item?.data?.name}</span>
                             )}
                           </Chip>
                         </div>
@@ -222,10 +269,10 @@ const VacationEdit = () => {
                 {(item) => (
                   <SelectItem
                     key={item.id}
-                    className='capitalize'
+                    className="capitalize"
                     textValue={String(item.name)}
                   >
-                    <div className='flex flex-col gap-2'>
+                    <div className="flex flex-col gap-2">
                       <User
                         name={item?.name || "No name"}
                         avatarProps={{
@@ -248,89 +295,98 @@ const VacationEdit = () => {
           )}
         />
         <Controller
-          name='dates'
+          name="dates"
           control={control}
-          rules={{ required: "Field is required" }}
+          rules={{
+            required: "Field is required",
+          }}
           render={({ field, fieldState: { error } }) => (
             <DateRangePicker
-              label='Dates'
-              variant='bordered'
+              label="Dates"
+              variant="bordered"
               isRequired
               id={field.name}
               value={field.value}
               onChange={field.onChange}
               isInvalid={!!error}
               errorMessage={error?.message}
+              isDateUnavailable={(date) => {
+                // only dates in 2024 are available
+                return date.year !== 2024;
+              }}
             />
           )}
         />
       </Row>
       <Row>
         <Controller
-          name='location'
+          name="location"
           control={control}
-          defaultValue=''
+          defaultValue=""
           render={({ field, fieldState: { error } }) => (
             <Skeleton isLoaded={!loading}>
               <Autocomplete
-                label='Location'
-                type='text'
+                label="Location"
+                type="text"
                 id={field.name}
                 name={field.name}
-                onChange={field.onChange}
+                inputValue={citySearch}
+                onInputChange={(value) => {
+                  setCitySearch(value);
+                  if (timeoutId) {
+                    clearTimeout(timeoutId);
+                  }
+                  setTimeoutId(
+                    setTimeout(() => {
+                      if (value.length >= 3) {
+                        list.setFilterText(value);
+                      }
+                    }, 1000),
+                  );
+                }}
+                onChange={(e) => {
+                  field.onChange(e);
+                }}
                 value={field.value}
-                variant='bordered'
-                items={dataGetCity?.data ?? []}
+                variant="bordered"
+                isLoading={list.isLoading}
+                items={list.items}
                 isInvalid={!!error}
                 errorMessage={error?.message}
                 disabled={loading}
               >
                 {(item) => (
                   <AutocompleteItem key={item.id} value={item.id}>
-                    {item.name}
+                    {`${item.name} - ${item.region}, ${item.country}`}
                   </AutocompleteItem>
                 )}
               </Autocomplete>
             </Skeleton>
           )}
         />
-        <label
-          className={cn(
-            "relative px-3 w-full flex-row shadow-sm outline-none tap-highlight-transparent",
-            "border-medium border-default-200 hover:border-default-400 rounded-medium",
-            "items-center gap-0 transition-colors motion-reduce:transition-none",
-            "h-14 min-h-14 py-2 flex justify-between cursor-pointer",
-            "data-[open=true]:border-default-foreground data-[focus=true]:border-default-foreground"
+        <Controller
+          name="photo"
+          control={control}
+          render={({ field, fieldState: { error } }) => (
+            <Skeleton isLoaded={!loading}>
+              <InputFile isRequired={false} onChange={field.onChange} />
+            </Skeleton>
           )}
-        >
-          <span>Photo</span>
-          <input
-            type='file'
-            className='hidden'
-            accept='image/*'
-            multiple
-            onChange={(e) => {
-              if (e.target.files) {
-                setImage(e.target.files[0]);
-              }
-            }}
-          />
-          <FaUpload className='text-xl' />
-        </label>
+        />
       </Row>
       <Controller
-        name='description'
+        name="description"
         control={control}
-        defaultValue=''
+        defaultValue=""
         render={({ field, fieldState: { error } }) => (
           <Skeleton isLoaded={!loading}>
             <Textarea
-              label='Description'
+              label="Description"
               id={field.name}
               name={field.name}
               onChange={field.onChange}
               value={field.value}
-              variant='bordered'
+              variant="bordered"
               isInvalid={!!error}
               errorMessage={error?.message}
               disabled={loading}
@@ -338,6 +394,15 @@ const VacationEdit = () => {
           </Skeleton>
         )}
       />
+      <Button
+        type="submit"
+        variant="flat"
+        color="primary"
+        className="w-fit"
+        isDisabled={loading}
+      >
+        Submit
+      </Button>
     </form>
   );
 };

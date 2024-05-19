@@ -21,7 +21,7 @@ export async function getCities({
   name?: string;
 }) {
   const { data } = await axios.get<CityApiProps>(
-    `http://geodb-free-service.wirefreethought.com/v1/geo/cities{${name ? `?namePrefix=${name}` : ""}`,
+    `http://geodb-free-service.wirefreethought.com/v1/geo/cities${name ? `?namePrefix=${name}` : ""}`,
     {
       signal,
     }
