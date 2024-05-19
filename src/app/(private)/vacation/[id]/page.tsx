@@ -80,7 +80,7 @@ const VacationEdit = () => {
     mutationKey: ["vacation-put"],
   });
 
-  const { handleSubmit, setValue, control, reset, watch } = useForm<
+  const { handleSubmit, setValue, control, reset } = useForm<
     FormVacationProps,
     "vacations"
   >();
@@ -118,7 +118,7 @@ const VacationEdit = () => {
         data: parseData,
         id: parseInt(id, 10),
       })
-        .then((dataVacation) => {
+        .then(() => {
           toast.success("Vacation updated successfully");
         })
         .catch((err) => {

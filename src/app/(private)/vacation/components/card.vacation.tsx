@@ -5,12 +5,10 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
-  Divider,
   Image,
 } from "@nextui-org/react";
 import { VacationApiProps } from "@/types/models/vacation";
 import { IoMdPin } from "react-icons/io";
-import { format } from "date-fns";
 
 export default function CardVacation(vacation: VacationApiProps) {
   return (
