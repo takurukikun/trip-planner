@@ -1,12 +1,17 @@
 export const menuItems = [
   {
-    name: 'Home',
-    path: '/',
-    icon: 'home',
+    name: "Home",
+    path: "/",
+    icon: "home",
   },
   {
-    name: 'Users',
-    path: '/user',
-    icon: 'user',
+    name: "Vacations",
+    path: "/vacation",
+    icon: "vacation",
   },
-]
+  {
+    name: "Users",
+    path: "/user",
+    icon: "user",
+  },
+];

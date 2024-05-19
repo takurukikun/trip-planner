@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import logo from '@/assets/images/logo.png'
+import logo from "@/assets/images/logo.png";
 
 import {
   Dropdown,
@@ -16,14 +16,21 @@ import {
   NavbarMenuItem,
   NavbarMenuToggle,
   User,
-} from '@nextui-org/react'
-import Image from 'next/image'
-import { useState } from 'react'
-import { FaHome, FaMoon, FaSignOutAlt, FaSun, FaUser } from 'react-icons/fa'
-import { fisrtAndSecondLetterName, formatName } from './functions'
-import { capitalize } from '@nextui-org/shared-utils'
-import { NavbarProps } from 'components/navbar/types'
-import { useRouter } from 'next/navigation'
+} from "@nextui-org/react";
+import Image from "next/image";
+import { useState } from "react";
+import {
+  FaHome,
+  FaMap,
+  FaMoon,
+  FaSignOutAlt,
+  FaSun,
+  FaUser,
+} from "react-icons/fa";
+import { fisrtAndSecondLetterName, formatName } from "./functions";
+import { capitalize } from "@nextui-org/shared-utils";
+import { NavbarProps } from "components/navbar/types";
+import { useRouter } from "next/navigation";
 
 const NavbarWrapper = ({
   menuItems,
@@ -33,8 +40,8 @@ const NavbarWrapper = ({
   logout,
   profile,
 }: NavbarProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const router = useRouter()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <Navbar
@@ -42,18 +49,18 @@ const NavbarWrapper = ({
       isMenuOpen={isMenuOpen}
       classNames={{
         item: [
-          '[&>.nav-link]:data-[active=true]:text-main-white',
-          '[&>.nav-link]:data-[active=true]:underline [&>.nav-link]:data-[active=true]:underline-offset-8',
-          '[&>.nav-link]:hover:text-main-white [&>.nav-link]:transition-all [&>.nav-link]:duration-300 [&>.nav-link]:ease-in-out',
-          '[&>.nav-link]:hover:underline [&>.nav-link]:hover:underline-offset-8',
-          'flex flex-col ',
+          "[&>.nav-link]:data-[active=true]:text-main-white",
+          "[&>.nav-link]:data-[active=true]:underline [&>.nav-link]:data-[active=true]:underline-offset-8",
+          "[&>.nav-link]:hover:text-main-white [&>.nav-link]:transition-all [&>.nav-link]:duration-300 [&>.nav-link]:ease-in-out",
+          "[&>.nav-link]:hover:underline [&>.nav-link]:hover:underline-offset-8",
+          "flex flex-col ",
         ],
-        wrapper: 'max-w-none w-screen px-4 md:px-8 2xl:px-16 bg-main-300',
+        wrapper: "max-w-none w-screen px-4 md:px-8 2xl:px-16 bg-main-300",
       }}
     >
       <NavbarContent>
         <NavbarMenuToggle
-          aria-label={isMenuOpen ? 'Close' : 'Open'}
+          aria-label={isMenuOpen ? "Close" : "Open"}
           className="md:hidden"
         />
         <NavbarBrand className="text-2xl light:text-gray-800 dark:text-white">
@@ -71,8 +78,8 @@ const NavbarWrapper = ({
           <NavbarItem
             key={item.path}
             isActive={
-              item.path === '/'
-                ? pathname === '/'
+              item.path === "/"
+                ? pathname === "/"
                 : pathname?.includes(item.path)
             }
           >
@@ -83,8 +90,10 @@ const NavbarWrapper = ({
               onClick={() => router.push(item.path)}
               title={item.name}
             >
-              {item.icon === 'home' && <FaHome className="mr-2" />}
-              {item.icon === 'user' && <FaUser className="mr-2" />}
+              {item.icon === "home" && <FaHome className="mr-2" />}
+              {item.icon === "user" && <FaUser className="mr-2" />}
+              {item.icon === "vacation" && <FaMap className="mr-2" />}
+
               <span className="hidden mdlg:flex">{item.name}</span>
             </Link>
           </NavbarItem>
@@ -95,45 +104,45 @@ const NavbarWrapper = ({
           <Dropdown placement="bottom-end" className="w-lg">
             <DropdownTrigger>
               <User
-                name={formatName(profile?.name || '') || 'No name'}
+                name={formatName(profile?.name || "") || "No name"}
                 avatarProps={{
-                  name: fisrtAndSecondLetterName(profile?.name || ''),
+                  name: fisrtAndSecondLetterName(profile?.name || ""),
                   showFallback: true,
-                  className: 'mr-2 cursor-pointer',
+                  className: "mr-2 cursor-pointer",
                   src: profile?.photo,
                 }}
                 classNames={{
                   description:
-                    'hidden cursor-pointer 2xs:block text-main-white',
-                  name: 'hidden cursor-pointer 2xs:block',
+                    "hidden cursor-pointer 2xs:block text-main-white",
+                  name: "hidden cursor-pointer 2xs:block",
                 }}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="Perfil" variant="flat">
               <DropdownItem
                 onClick={() => {
-                  router.push(`/user/${profile?.id}`)
+                  router.push(`/user/${profile?.id}`);
                 }}
                 key="profile"
                 startContent={<FaUser />}
-                textValue={'My profile'}
+                textValue={"My profile"}
               >
                 My profile
               </DropdownItem>
               <DropdownItem
                 key="theme"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                startContent={theme === 'dark' ? <FaMoon /> : <FaSun />}
-                textValue={`Theme: ${capitalize(theme ?? 'light')}`}
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                startContent={theme === "dark" ? <FaMoon /> : <FaSun />}
+                textValue={`Theme: ${capitalize(theme ?? "light")}`}
               >
-                Theme: {capitalize(theme ?? 'light')}
+                Theme: {capitalize(theme ?? "light")}
               </DropdownItem>
               <DropdownItem
                 onClick={() => logout()}
                 key="logout"
                 color="danger"
                 startContent={<FaSignOutAlt className="text-danger" />}
-                textValue={'Log-out'}
+                textValue={"Log-out"}
               >
                 Log-out
               </DropdownItem>
@@ -141,7 +150,7 @@ const NavbarWrapper = ({
           </Dropdown>
         </NavbarItem>
       </NavbarContent>
-      <NavbarMenu className={'pt-8'}>
+      <NavbarMenu className={"pt-8"}>
         {menuItems.map((item) => (
           <NavbarMenuItem
             key={item.path}
@@ -153,19 +162,20 @@ const NavbarWrapper = ({
               // href={item.path}
               size="lg"
               onClick={() => {
-                router.push(item.path)
-                setIsMenuOpen(false)
+                router.push(item.path);
+                setIsMenuOpen(false);
               }}
             >
-              {item.icon === 'home' && <FaHome className="mr-2" />}
-              {item.icon === 'user' && <FaUser className="mr-2" />}
+              {item.icon === "home" && <FaHome className="mr-2" />}
+              {item.icon === "user" && <FaUser className="mr-2" />}
+              {item.icon === "vacation" && <FaMap className="mr-2" />}
               {item.name}
             </Link>
           </NavbarMenuItem>
         ))}
       </NavbarMenu>
     </Navbar>
-  )
-}
+  );
+};
 
-export default NavbarWrapper
+export default NavbarWrapper;

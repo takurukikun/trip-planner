@@ -12,11 +12,11 @@ export default function middleware(req: NextRequest) {
   const signed = cookies.signed;
 
   const protectedRoute = protectedRoutes.find((route) =>
-    req.nextUrl.pathname.startsWith(route.path)
+    req.nextUrl.pathname.startsWith(route.path),
   );
 
   const publicRoute = publicRoutes.find((route) =>
-    req.nextUrl.pathname.startsWith(route.path)
+    req.nextUrl.pathname.startsWith(route.path),
   );
 
   const absoluteURL = new URL("/", req.nextUrl.origin);
@@ -58,6 +58,7 @@ export const config = {
     "/dashboard",
     "/user",
     "/login",
+    "/vacation",
     "/dashboard/:path*",
     "/user/:path*",
     "/vacation/:path*",
