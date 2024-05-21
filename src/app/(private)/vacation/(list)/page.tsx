@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getData } from "@/lib/functions.api";
 import { VacationApiProps } from "@/types/models/vacation";
-import CardVacation from "@/app/(private)/vacation/components/card.vacation";
+import CardVacation from "@/app/(private)/vacation/(list)/components/card.vacation";
 
 export default function User() {
   const { data: dataGetVacation, isLoading: loadingGet } = useQuery({

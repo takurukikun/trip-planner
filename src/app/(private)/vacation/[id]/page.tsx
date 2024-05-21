@@ -16,6 +16,7 @@ import {
   Button,
   Chip,
   DateRangePicker,
+  Image,
   Input,
   Select,
   SelectItem,
@@ -28,9 +29,14 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { getCities } from "./functions";
-import { FormVacationProps } from "./types";
+import { FormSendVacationProps, FormVacationProps } from "./types";
 import { InputFile } from "components/inputFile";
-import { getLocalTimeZone } from "@internationalized/date";
+import {
+  fromDate,
+  getLocalTimeZone,
+  toCalendar,
+  ZonedDateTime,
+} from "@internationalized/date";
 import { useAsyncList } from "@react-stately/data";
 import { CityApiProps } from "@/types/models/city";
 import { toast } from "react-toastify";
@@ -62,21 +68,26 @@ const VacationEdit = () => {
       getData<VacationApiProps>({
         url: "vacation",
         id: parseInt(id, 10),
+        query: "include.users=true&&include.dates=true",
         signal,
       }),
     queryKey: ["vacation-get", id],
     enabled: id !== "new",
+    select: (vacation) => ({
+      ...vacation,
+      dates: vacation.dates.map(({ date }) => new Date(date)),
+    }),
   });
 
   const { mutateAsync: mutatePost, isPending: loadingPost } = useMutation({
-    mutationFn: async (val: PostData<VacationApiProps>) =>
-      postData<VacationApiProps, VacationApiProps>(val),
+    mutationFn: async (val: PostData<FormSendVacationProps>) =>
+      postData<VacationApiProps, FormSendVacationProps>(val),
     mutationKey: ["vacation-post"],
   });
 
   const { mutateAsync: mutatePut, isPending: loadingPut } = useMutation({
-    mutationFn: (val: PutData<VacationApiProps>) =>
-      putData<VacationApiProps, VacationApiProps>(val),
+    mutationFn: (val: PutData<FormSendVacationProps>) =>
+      putData<VacationApiProps, FormSendVacationProps>(val),
     mutationKey: ["vacation-put"],
   });
 
@@ -141,7 +152,20 @@ const VacationEdit = () => {
     if (dataGetVacation && id !== "new") {
       setValue("title", dataGetVacation.title);
       setValue("description", dataGetVacation.description);
-      // setValue("dates", dataGetVacation.dates);
+      setValue("location", dataGetVacation.location);
+      setCitySearch(dataGetVacation.location);
+      // setValue("photo", dataGetVacation.photo);
+      setValue(
+        "userIds",
+        dataGetVacation.users?.map((user) => String(user.id)),
+      );
+      setValue("dates", {
+        start: fromDate(dataGetVacation.dates[0], getLocalTimeZone()),
+        end: fromDate(
+          dataGetVacation.dates[dataGetVacation.dates.length - 1],
+          getLocalTimeZone(),
+        ),
+      });
     }
   }, [dataGetVacation, id, setValue]);
 
@@ -302,6 +326,7 @@ const VacationEdit = () => {
           }}
           render={({ field, fieldState: { error } }) => (
             <DateRangePicker
+              granularity="day"
               label="Dates"
               variant="bordered"
               isRequired
@@ -364,6 +389,14 @@ const VacationEdit = () => {
             </Skeleton>
           )}
         />
+        {dataGetVacation && dataGetVacation.photo && (
+          <Image
+            alt="location picture"
+            src={dataGetVacation.photo}
+            width={200}
+            height={200}
+          />
+        )}
         <Controller
           name="photo"
           control={control}

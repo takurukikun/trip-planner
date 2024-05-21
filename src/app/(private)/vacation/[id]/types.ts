@@ -6,3 +6,11 @@ export type FormVacationProps = Omit<VacationApiProps, "dates" | "photo"> & {
   dates: { start: DateValue; end: DateValue };
   photo: File;
 };
+
+export type FormSendVacationProps = Omit<
+  VacationApiProps,
+  "userIds" | "dates"
+> & {
+  userIds: number[];
+  dates: string[];
+};
