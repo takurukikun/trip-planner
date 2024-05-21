@@ -9,12 +9,11 @@ import {
   CardHeader,
   Divider,
   Image,
-  Link,
   Tooltip,
 } from "@nextui-org/react";
 import { VacationApiProps } from "@/types/models/vacation";
 import { IoMdPin } from "react-icons/io";
-import { FaPlus, FaTimes, FaTrash } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 import { FaPencil } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 
@@ -33,6 +32,11 @@ export default function CardVacation(vacation: VacationApiProps) {
           src={vacation.photo}
         />
 
+        <CardFooter className="bg-white border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large top-[180px] w-[calc(100%_-_24px)] shadow-small ml-auto z-10">
+          <IoMdPin className="text-main text-xl" />
+          <h4 className="text-main ml-2">{vacation.location}</h4>
+        </CardFooter>
+
         <span className="text-sm text-foreground-800 mt-2">
           {vacation.description}
         </span>
@@ -50,13 +54,8 @@ export default function CardVacation(vacation: VacationApiProps) {
             />
           ))}
         </AvatarGroup>
-        <div className="flex w-full justify-between"></div>
         <Divider />
       </CardBody>
-      {/*<CardFooter className="bg-white border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">*/}
-      {/*  <IoMdPin className="text-main text-xl" />*/}
-      {/*  <h4 className="text-main ml-2">{vacation.location}</h4>*/}
-      {/*</CardFooter>*/}
       <CardFooter className="overflow-hidden flex justify-between py-2 rounded-large w-[calc(100%_-_8px)]">
         <Tooltip
           content="Edit"
